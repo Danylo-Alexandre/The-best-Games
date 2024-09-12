@@ -110,7 +110,8 @@
 </head>
 <body>
     <div id="app">
-        <h1>The Best Games</h1>
+        <h1 id="titulo-site">The Best Games</h1>
+        <h2 id="subtitulo-site">Cadastro de Usuário</h2>
         <form @submit.prevent="submitForm">
             <label for="id">ID do Usuário:</label>
             <input type="number" v-model="form.id" placeholder="ID do Usuário" :disabled="isEdit"><br><br>
@@ -133,6 +134,7 @@
             <br>
             <a id="aba-do-dev" href="dev.html">Aba do Desenvolvedor</a>
         </form>
+
 
         <h2>Usuários Cadastrados</h2>
         <button @click="listUsers">Exibir Usuários</button>
