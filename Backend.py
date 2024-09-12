@@ -15,8 +15,8 @@ def conexao():
         con_BD = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='40028922',
-            database='projeto_bd_site_de_jogos'
+            password='Gr@n0300',
+            database='Plataforma_de_vendas_de_jogos_online'
         )
         if con_BD.is_connected():
             print("A conexão foi um sucesso!")
