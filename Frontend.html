@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Best Games</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        /* Estilo para o modal */
+        html, body {
+            margin: 0 2em 0 2em;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            align-items: center;
+            text-align: center;
+            color: white;
+            background-image: url(https://imgs.search.brave.com/dV838wqVWlWb2A9NP6TQqFn_QcGWY6wHEt7OWVKKmus/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/dmV0b3Jlcy1ncmF0/aXMvZnVuZG8tbGlz/dHJhZG8tZ2VvbWV0/cmljby1kaWFnb25h/bC1hbWFyZWxvLWNv/bS1kZXRhbGhlcy1k/ZS1tZWlvLXRvbV8x/NDA5LTE0NTEuanBn/P3NpemU9NjI2JmV4/dD1qcGc);
+            background-size: cover;
+            background-attachment: fixed;
+        }
+
+        div {
+            padding: 0 1em 1em 1em;
+            background: rgba(0, 0, 0, 0.692);
+            box-shadow: 8px 8px 32px 0 rgba(0, 1, 9, 0.698);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            margin-bottom: 1em;
+        }
+
+        .modal {
+            display: none; /* Inicialmente oculto */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #000000;
+            padding: 20px;
+            border-radius: 10px;
+            width: 400px;
+        }
+        .modal.show {
+            display: flex;
+        }
+
+        .form-label {
+            border-style: inset;
+        }
+
+        #app {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #logo {
+            width: 75px;
+            height: 75px;
+            padding: 15px 0 0 0;
+        }
+
+        #titulo-site {
+            color: #f0d801;
+        }
+
+        #subtitulo-site {
+            color: #beab00;
+            border-style: #000000;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        #aba-do-dev {
+            margin: 15px;
+        }
+
+        button {
+            padding: 10px 20px;
+            text-transform: uppercase;
+            border-radius: 8px;
+            font-size: 17px;
+            font-weight: 500;
+            color: #ffffff80;
+            text-shadow: none;
+            background: transparent;
+            cursor: pointer;
+            border: 1px solid #ffffff80;
+            transition: 0.5s ease;
+            user-select: none;
+        }
+
+        #btn:hover,
+        :focus {
+            color: #000000;
+            background: #f0d801;
+            border: 1px solid #b7b102;
+            text-shadow: 0 0 5px #ffffff, 0 0 10px #ffffff, 0 0 20px #ffffff;
+            box-shadow: 0 0 5px #7c7400, 0 0 20px #747801, 0 0 50px #d5dc02,
+                0 0 100px #8d8301;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <h1>The Best Games</h1>
+        <form @submit.prevent="submitForm">
+            <label for="id">ID do Usuário:</label>
+            <input type="number" v-model="form.id" placeholder="ID do Usuário" :disabled="isEdit"><br><br>
+
+            <label for="name">Nome:</label>
+            <input type="text" v-model="form.name" placeholder="Nome"><br><br>
+
+            <label for="email">E-mail:</label>
+            <input type="email" v-model="form.email" placeholder="E-mail"><br><br>
+
+            <label for="birthdate">Data de Nascimento:</label>
+            <input type="date" v-model="form.birthdate" placeholder="Data de Nascimento"><br><br>
+
+            <label for="phone">Telefone:</label>
+            <input type="tel" v-model="form.phone" placeholder="Telefone"><br><br>
+
+            <button @click="isEdit ? editUser() : addUser()">
+                {{ isEdit ? 'Salvar Alterações' : 'Adicionar Usuário' }}
+            </button>
+            <br>
+            <a id="aba-do-dev" href="dev.html">Aba do Desenvolvedor</a>
+        </form>
+
+        <h2>Usuários Cadastrados</h2>
+        <button @click="listUsers">Exibir Usuários</button>
+        <div v-for="user in users" :key="user.id">
+            <p>ID: {{ user.id }}, Nome: {{ user.name }}, E-mail: {{ user.email }}, Telefone: {{ user.phone }}</p>
+            <button @click="openModal(user)">Editar</button>
+            <button @click="deleteUser(user.id)">Deletar</button>
+            <button @click="enterStore(user)">Entrar na Loja</button>
+            <button @click="listUserGames(user)">Ver Jogos</button>
+
+            <!-- Exibir a lista de jogos comprados -->
+            <div v-if="selectedUserGames[user.id]">
+                <h3>Jogos Comprados:</h3>
+                <ul v-if="selectedUserGames[user.id].length > 0">
+                    <li v-for="game in selectedUserGames[user.id]" :key="game.idJogo">
+                        {{ game.Titulo }} - {{ game.Descrição }}
+                    </li>
+                </ul>
+                <p v-else>Nenhum jogo comprado.</p>
+            </div>
+        </div>
+
+
+        <!-- Seção da Mini Loja de Jogos -->
+        <div v-if="selectedUser">
+            <h2>Loja de Jogos</h2>
+            <h3>Bem-vindo, {{ selectedUser.name }} escolha o jogo que quiser!</h3>
+
+            <!-- Lista de jogos disponíveis -->
+            <div v-for="game in games" :key="game.id">
+                <p>{{ game.title }} - {{ game.description }}</p>
+                <button @click="selectGameToBuy(game)">Adicionar jogo</button>
+            </div>
+
+            <p>{{ message }}</p>
+        </div>
+
+        <!-- Modal para edição de usuário -->
+        <div class="modal" :class="{ show: showModal }">
+            <div class="modal-content">
+                <h3>Editar Usuário</h3>
+                <form @submit.prevent="editUser">
+                    <label for="id">ID do Usuário:</label>
+                    <input type="number" v-model="form.id" disabled><br><br>
+
+                    <label for="name">Nome:</label>
+                    <input type="text" v-model="form.name" placeholder="Nome"><br><br>
+
+                    <label for="email">E-mail:</label>
+                    <input type="email" v-model="form.email" placeholder="E-mail"><br><br>
+
+                    <label for="birthdate">Data de Nascimento:</label>
+                    <input type="date" v-model="form.birthdate" placeholder="Data de Nascimento"><br><br>
+
+                    <label for="phone">Telefone:</label>
+                    <input type="tel" v-model="form.phone" placeholder="Telefone"><br><br>
+
+                    <button type="submit">Salvar Alterações</button>
+                    <button @click="closeModal" type="button">Cancelar</button>
+                </form>
+            </div>
+        </div>
+
+        <script>
+            new Vue({
+                el: '#app',
+                data() {
+                    return {
+                        form: {
+                            id: null,
+                            name: '',
+                            email: '',
+                            birthdate: '',
+                            phone: ''
+                        },
+                        users: [],
+                        games: [], // Armazenará a lista de jogos
+                        isEdit: false,
+                        showModal: false,  // Controla a exibição do modal
+                        selectedUser: null,  // Usuário que entrou na loja
+                        selectedGame: null,  // Jogo selecionado para compra
+                        message: '',
+                        selectedUserGames: {}
+                    };
+                },
+                methods: {
+                    openModal(user) {
+                        this.setForm(user);
+                        this.isEdit = true;  // Ativa o modo de edição
+                        this.showModal = true;  // Exibe o modal
+                    },
+                    closeModal() {
+                        this.clearForm();
+                        this.showModal = false;  // Oculta o modal
+                    },
+                    async addUser() {
+                        try {
+                            const response = await axios.post('http://localhost:5000/add_user', this.form);
+                            this.message = response.data.message;
+                            this.clearForm();
+                            this.listUsers();  // Atualiza a lista de usuários
+                        } catch (error) {
+                            this.message = 'Falha ao adicionar usuário';
+                        }
+                    },
+                    async editUser() {
+                        try {
+                            const response = await axios.put(`http://localhost:5000/edit_user/${this.form.id}`, this.form);
+                            this.message = response.data.message;
+                            this.clearForm();
+                            this.isEdit = false;
+                            this.showModal = false;  // Fecha o modal após salvar as alterações
+                            this.listUsers();  // Atualiza a lista de usuários
+                        } catch (error) {
+                            this.message = 'Falha ao editar usuário';
+                        }
+                    },
+                    async deleteUser(id) {
+                        try {
+                            const response = await axios.delete(`http://localhost:5000/delete_user/${id}`);
+                            this.message = response.data.message;
+                            this.listUsers();  // Atualiza a lista de usuários
+                        } catch (error) {
+                            this.message = 'Falha ao deletar usuário';
+                        }
+                    },
+                    async listUsers() {
+                        try {
+                            const response = await axios.get('http://localhost:5000/get_users');
+                            this.users = response.data;
+                        } catch (error) {
+                            this.message = 'Falha ao listar usuários';
+                        }
+                    },
+                    async selectGameToBuy(game) {
+                        if (!this.selectedUser) {
+                            this.message = 'Você precisa estar logado para comprar um jogo.';
+                            return;
+                        }
+                        
+                        try {
+                            const response = await axios.post('http://localhost:5000/buy_game', {
+                                user_id: this.selectedUser.id,  // ID do usuário logado
+                                game_id: game.id  // ID do jogo selecionado
+                            });
+                            // Exibir a mensagem de sucesso ou erro retornada pelo backend
+                            this.message = response.data.message;  
+                            if (response.status === 200) {
+                                this.message = `O jogo "${game.title}" foi comprado com sucesso!`;
+                            }
+                            this.selectedGame = null;  // Limpa o jogo selecionado após a compra
+                        } catch (error) {
+                            // Exibe uma mensagem de erro caso a compra falhe
+                            if (error.response) {
+                                this.message = error.response.data.message || 'Falha ao registrar compra.';
+                            } else {
+                                this.message = 'Erro na conexão com o servidor.';
+                            }
+                        }
+                    },
+                    async listUserGames(user) {
+                        try {
+                            const response = await axios.get(`http://localhost:5000/get_user_games/${user.id}`);
+                            // Armazenar os jogos do usuário no estado `selectedUserGames`
+                            this.$set(this.selectedUserGames, user.id, response.data);
+                        } catch (error) {
+                            this.message = 'Falha ao listar jogos do usuário.';
+                        }
+                    },
+                    // Métodos relacionados à loja de jogos
+                    async listGames() {
+                        try {
+                            const response = await axios.get('http://localhost:5000/get_games');
+                            this.games = response.data;  // Atualiza a lista de jogos com os dados do banco
+                        } catch (error) {
+                            this.message = 'Falha ao listar jogos';
+                        }
+                    },
+                    setForm(user) {
+                        this.form = { ...user };  // Define o formulário com os dados do usuário
+                    },
+                    clearForm() {
+                        this.form = { id: null, name: '', email: '', birthdate: '', phone: '' };
+                        this.isEdit = false;
+                    },
+                    enterStore(user) {
+                        this.selectedUser = user;  // Define o usuário que entrou na loja
+                        this.listGames();  // Chama a lista de jogos ao entrar na loja
+                    }
+                }
+            });
+        </script>
+    </div>
+</body>
+</html>
