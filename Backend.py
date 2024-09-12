@@ -15,7 +15,7 @@ def conexao():
         con_BD = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Gr@n0300',
+            password='40028922',
             database='Plataforma_de_vendas_de_jogos_online'
         )
         if con_BD.is_connected():
@@ -543,8 +543,6 @@ def delete_developer(id):
 
             if result:
                 id_perfil_usuario = result[0]
-
-                delete_developer_game(db, id)
 
                 cursor.execute("DELETE FROM Desenvolvedor WHERE idDesenvolvedor = %s", (id,))
                 db.commit()
